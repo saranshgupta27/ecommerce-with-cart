@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Heading,
+  Img,
   SimpleGrid,
   Text,
   VStack,
@@ -27,8 +28,17 @@ export const ProductList: React.FC<ProductListProps> = ({
         {products.map((product) => (
           <Box key={product.id} borderWidth={1} borderRadius="lg" p={4}>
             <VStack align="start">
+              <Img
+                src={product.image}
+                alt={product.name}
+                onError={({ currentTarget }) => {
+                  currentTarget.onerror = null;
+                  currentTarget.src =
+                    "https://icons.veryicon.com/png/o/education-technology/alibaba-cloud-iot-business-department/image-load-failed.png";
+                }}
+              />
               <Text fontWeight="bold">{product.name}</Text>
-              <Text>INR {product.price.toFixed(2)}</Text>
+              <Text>₹ {product.price.toFixed(2)}</Text>
               <Button
                 colorScheme="blue"
                 onClick={() => onAddToCart(product.id)}

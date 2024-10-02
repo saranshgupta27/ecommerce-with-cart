@@ -9,14 +9,19 @@ const Home: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [nthOrder, setNthOrder] = useState(5);
-  const [adminStats, setAdminStats] = useState({
+  const [adminStats, setAdminStats] = useState<{
+    itemsPurchased: number;
+    totalPurchaseAmount: number;
+    discountCodes: { code: string; used: boolean }[];
+    totalDiscountAmount: number;
+  }>({
     itemsPurchased: 0,
     totalPurchaseAmount: 0,
     discountCodes: [],
     totalDiscountAmount: 0,
   });
   const toast = useToast();
-
+  console.log(cart);
   useEffect(() => {
     fetchProducts();
     fetchCart();
@@ -67,8 +72,6 @@ const Home: React.FC = () => {
     setCart([]);
   };
 
-  console.log(cart);
-
   const handleCheckout = async (discountCode?: string) => {
     const response = await fetch("/api/checkout", {
       method: "POST",
@@ -82,7 +85,7 @@ const Home: React.FC = () => {
       fetchAdminStats();
       toast({
         title: "Order placed successfully",
-        description: `Total: $${order.total.toFixed(2)}`,
+        description: `Total: ₹ ${order.total.toFixed(2)}`,
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -129,25 +132,39 @@ const Home: React.FC = () => {
   };
   return (
     <Container maxW="container.xl" py={8}>
-      <Flex direction={{ base: "column", md: "row" }} gap={8}>
-        <Box flex={2}>
+      <Flex direction={{ base: "column", md: "row" }} gap={8} height={"100%"}>
+        <Box flex={2} height={"max-content"}>
           <ProductList products={products} onAddToCart={handleAddToCart} />
         </Box>
-        <Box flex={1}>
-          <Cart cart={cart} onCheckout={handleCheckout} />
+        <Box>
+          <Flex
+            direction={"column"}
+            justifyContent={"space-between"}
+            height={"100%"}
+            maxH={"100%"}
+            gap={4}
+          >
+            <Cart
+              cart={cart}
+              onCheckout={handleCheckout}
+              availableDiscountCodes={
+                adminStats.discountCodes
+                  ? adminStats.discountCodes.filter((dc) => !dc.used)
+                  : []
+              }
+            />
+            <AdminPanel
+              itemsPurchased={adminStats.itemsPurchased}
+              totalPurchaseAmount={adminStats.totalPurchaseAmount}
+              discountCodes={adminStats.discountCodes}
+              totalDiscountAmount={adminStats.totalDiscountAmount}
+              resetStats={resetStats}
+              nthOrder={nthOrder}
+              onNthOrderChange={handleNthOrderChange}
+            />
+          </Flex>
         </Box>
       </Flex>
-      <Box mt={16}>
-        <AdminPanel
-          itemsPurchased={adminStats.itemsPurchased}
-          totalPurchaseAmount={adminStats.totalPurchaseAmount}
-          discountCodes={adminStats.discountCodes}
-          totalDiscountAmount={adminStats.totalDiscountAmount}
-          resetStats={resetStats}
-          nthOrder={nthOrder}
-          onNthOrderChange={handleNthOrderChange}
-        />
-      </Box>
     </Container>
   );
 };

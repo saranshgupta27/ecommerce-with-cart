@@ -2,9 +2,41 @@ import { CartItem, DiscountCode, Order, Product } from "../types";
 
 class Store {
   private products: Product[] = [
-    { id: 1, name: "Product 1", price: 10 },
-    { id: 2, name: "Product 2", price: 20 },
-    { id: 3, name: "Product 3", price: 30 },
+    {
+      id: 1,
+      name: "Laptop",
+      price: 59999,
+      image:
+        "https://img.freepik.com/premium-vector/modern-laptop-mockup-with-blank-screen-vector-illustration_1253202-36850.jpg",
+    },
+    {
+      id: 2,
+      name: "Milk",
+      price: 120,
+      image:
+        "https://www.shutterstock.com/image-vector/tall-vanilla-cows-milk-carton-600nw-2016254093.jpg",
+    },
+    {
+      id: 3,
+      name: "Banana (3 pieces)",
+      price: 30,
+      image:
+        "https://static.vecteezy.com/system/resources/previews/006/853/188/non_2x/realistic-banana-good-for-food-catalugue-fruit-catalogue-etc-free-vector.jpg",
+    },
+    {
+      id: 4,
+      name: "Headphones",
+      price: 1999,
+      image:
+        "https://static.vecteezy.com/system/resources/previews/004/800/082/original/red-headphones-device-free-vector.jpg",
+    },
+    {
+      id: 5,
+      name: "Chocolate",
+      price: 90,
+      image:
+        "https://static.vecteezy.com/system/resources/previews/007/634/001/non_2x/chocolate-bar-clipart-design-vektor-free-vector.jpg",
+    },
   ];
   private cart: CartItem[] = [];
   private orders: Order[] = [];
@@ -40,6 +72,7 @@ class Store {
   }
 
   checkout(discountCode?: string): Order | { error: string } {
+    discountCode = discountCode?.trim();
     if (this.cart.length === 0) {
       return { error: "Cannot checkout with an empty cart" };
     }
@@ -85,7 +118,7 @@ class Store {
   }
 
   private generateDiscountCode(): DiscountCode {
-    const code = `DISCOUNT${this.orderCount}`;
+    const code = `GET10-${this.orderCount}`;
     const discountCode: DiscountCode = { code, used: false };
     this.discountCodes.push(discountCode);
     return discountCode;
