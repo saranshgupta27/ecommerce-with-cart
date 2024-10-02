@@ -30,6 +30,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   resetStats,
 }) => {
   const [newNthOrder, setNewNthOrder] = useState(nthOrder.toString());
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const handleNthOrderChange = () => {
     const n = parseInt(newNthOrder, 10);
@@ -39,41 +40,74 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   };
 
   return (
-    <Box>
+    <Box
+      position={"absolute"}
+      left={0}
+      top={0}
+      cursor={isExpanded ? "initial" : "pointer"}
+      color={isExpanded ? "black" : "white"}
+      background={isExpanded ? "beige" : "blue.800"}
+      p={isExpanded ? 6 : 2}
+      onClick={isExpanded ? undefined : () => setIsExpanded(true)}
+    >
       <Heading as="h2" size="lg" mb={4}>
-        Admin Panel
+        Admin Controls
       </Heading>
-      <VStack align="start" spacing={2}>
-        <Text>Items Purchased: {itemsPurchased}</Text>
-        <Text>Total Purchase Amount: INR {totalPurchaseAmount.toFixed(2)}</Text>
-        <Text>Total Discount Amount: INR {totalDiscountAmount.toFixed(2)}</Text>
-        <Text>Current Nth Order: {nthOrder}</Text>
-        <Text>Discount Codes:</Text>
-        <VStack align="start" pl={4}>
-          {discountCodes.map((code, index) => (
-            <Text key={index}>
-              {code.code} - {code.used ? "Used" : "Available"}
-            </Text>
-          ))}
+      {isExpanded && (
+        <VStack align="start" spacing={2}>
+          <Text>Items Purchased: {itemsPurchased}</Text>
+          <Text>
+            Total Purchase Amount: INR {totalPurchaseAmount.toFixed(2)}
+          </Text>
+          <Text>
+            Total Discount Amount: INR {totalDiscountAmount.toFixed(2)}
+          </Text>
+          <Text>Current Nth Order: {nthOrder}</Text>
+          <Text>Discount Code Status:</Text>
+          <VStack align="start" pl={4}>
+            {discountCodes?.map((code) => (
+              <Text key={code.code}>
+                {code.code} - {code.used ? "Used" : "Available"}
+              </Text>
+            ))}
+          </VStack>
+          <Flex gap={2}>
+            <Input
+              w={50}
+              type="number"
+              required
+              background={"white"}
+              placeholder="New Nth Order"
+              value={newNthOrder}
+              onChange={(e) => setNewNthOrder(e.target.value)}
+              mr={2}
+            />
+            <Button
+              onClick={handleNthOrderChange}
+              background={"blue.900"}
+              color={"white"}
+            >
+              Update Discount frequency to Nth Order
+            </Button>
+          </Flex>
+          <Flex gap={"4"}>
+            <Button
+              onClick={resetStats}
+              background={"blue.600"}
+              color={"white"}
+            >
+              Reset Stats
+            </Button>
+            <Button
+              onClick={() => setIsExpanded(false)}
+              background={"red"}
+              color={"white"}
+            >
+              Close
+            </Button>
+          </Flex>
         </VStack>
-        <Flex gap={2}>
-          <Input
-            w={50}
-            type="number"
-            required
-            placeholder="New Nth Order"
-            value={newNthOrder}
-            onChange={(e) => setNewNthOrder(e.target.value)}
-            mr={2}
-          />
-          <Button onClick={handleNthOrderChange}>
-            Update Nth Order number for discount
-          </Button>
-        </Flex>
-        <Box>
-          <Button onClick={resetStats}>Reset Admin Stats</Button>
-        </Box>
-      </VStack>
+      )}
     </Box>
   );
 };
