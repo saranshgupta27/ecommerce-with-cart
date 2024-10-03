@@ -21,14 +21,21 @@ export const ProductList: React.FC<ProductListProps> = ({
 }) => {
   return (
     <Box>
-      <Heading as="h2" size="lg" mb={4}>
+      <Heading as="h2" size="lg" my={4}>
         Products
       </Heading>
       <SimpleGrid columns={3} spacing={4}>
         {products.map((product) => (
-          <Box key={product.id} borderWidth={1} borderRadius="lg" p={4}>
-            <VStack align="start">
+          <Box
+            key={product.id}
+            borderWidth={1}
+            borderRadius="lg"
+            p={4}
+            boxShadow={"rgba(0, 0, 0, 0.1) 0px 4px 12px"}
+          >
+            <VStack align="center">
               <Img
+                height={160}
                 src={product.image}
                 alt={product.name}
                 onError={({ currentTarget }) => {

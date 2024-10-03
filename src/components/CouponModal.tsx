@@ -61,7 +61,7 @@ const CouponModal: React.FC<CouponModalProps> = ({
               <RadioGroup value={selectedCoupon} onChange={setSelectedCoupon}>
                 <VStack align="start">
                   {coupons
-                    .filter((coupon) => !coupon.used)
+                    .filter((coupon) => !coupon.isInvalid)
                     .map((coupon) => (
                       <Radio key={coupon.code} value={coupon.code}>
                         {coupon.code}

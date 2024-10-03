@@ -95,10 +95,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           <Text>Total Orders: {adminStats.totalOrderCount}</Text>
           <Text>Current Nth Order: {nthOrder}</Text>
           <Text>Discount Code Status:</Text>
+
           <VStack align="start" pl={4}>
             {adminStats.discountCodes?.map((code) => (
               <Text key={code.code}>
-                {code.code} - {code.used ? "Used" : "Available"}
+                {code.code} - {code.isInvalid ? "InValid/Used" : "Available"}
               </Text>
             ))}
           </VStack>

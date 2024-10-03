@@ -15,18 +15,21 @@ interface CartProps {
   cart: CartItem[];
   onCheckout: (discountCode?: string) => void;
   availableDiscountCodes: DiscountCode[] | [];
+  onDeleteItem: (productId: number) => void;
 }
 
 export const Cart: React.FC<CartProps> = ({
   cart,
   onCheckout,
   availableDiscountCodes,
+  onDeleteItem,
 }) => {
   const [discountCode, setDiscountCode] = useState("");
+
   const clearDiscountCode = () => {
     setDiscountCode("");
   };
-
+  console.log(cart);
   const subtotal = cart.reduce(
     (total, item) => total + item.product.price * item.quantity,
     0
@@ -38,13 +41,18 @@ export const Cart: React.FC<CartProps> = ({
 
   return (
     <>
-      <Heading as="h2" size="lg" mb={4}>
+      <Heading as="h2" size="lg" mt={4}>
         Cart
       </Heading>
       <Flex
+        mt={4}
         height={"100%"}
         flexDirection={"column"}
         justifyContent={"space-between"}
+        padding={4}
+        boxShadow={
+          "rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px"
+        }
       >
         <VStack align="start" spacing={2} overflowX={"auto"} height="100%">
           {cart.length === 0 ? (
@@ -83,9 +91,18 @@ export const Cart: React.FC<CartProps> = ({
                     <Text>{item.quantity}</Text>
                   </Flex>
                 </Flex>
-                <Text>
-                  INR {(item.product.price * item.quantity).toFixed(2)}
-                </Text>
+                <Flex alignItems={"center"} gap={2}>
+                  <Text>
+                    INR {(item.product.price * item.quantity).toFixed(2)}
+                  </Text>
+                  <Button
+                    colorScheme="red"
+                    size="sm"
+                    onClick={() => onDeleteItem(item.product.id)}
+                  >
+                    X
+                  </Button>
+                </Flex>
               </Flex>
             ))
           )}
@@ -121,6 +138,7 @@ export const Cart: React.FC<CartProps> = ({
             colorScheme="green"
             mt={4}
             onClick={() => onCheckout(discountCode)}
+            isDisabled={cart.length === 0}
           >
             Checkout
           </Button>

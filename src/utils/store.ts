@@ -78,7 +78,7 @@ class Store {
 
   checkout(discountCode?: string): Order | { error: string } {
     discountCode = discountCode?.trim();
-
+    console.log(this.cart.length);
     if (this.cart.length === 0) {
       return { error: "Cannot checkout with an empty cart" };
     }
@@ -91,13 +91,13 @@ class Store {
 
     if (discountCode) {
       const validDiscount = this.discountCodes.find(
-        (dc) => dc.code === discountCode && !dc.used
+        (dc) => dc.code === discountCode && !dc.isInvalid
       );
       if (validDiscount) {
         discount = subtotal * (this.discountPercentage / 100);
-        validDiscount.used = true; // Mark the discount as used
+        validDiscount.isInvalid = true; // Mark the discount as isInvalid
       } else {
-        return { error: "Invalid or already used discount code" };
+        return { error: "Invalid or already Used discount code" };
       }
     }
 
@@ -116,18 +116,27 @@ class Store {
     this.currentOrder.push(order);
     this.clearCart();
 
-    if (this.orderCount % this.nthOrder === 0) {
+    if ((this.orderCount + 1) % this.nthOrder === 0) {
       this.generateDiscountCode();
+    } else {
+      this.discountCodes = this.discountCodes.map((dc) => ({
+        ...dc,
+        isInvalid: true,
+      }));
     }
 
     return order;
   }
 
   private generateDiscountCode(): DiscountCode {
-    const code = `GET10-${this.orderCount}`;
-    const discountCode: DiscountCode = { code, used: false };
+    const code = `GET10-${Math.floor(this.orderCount + 1 / this.nthOrder)}`;
+    const discountCode: DiscountCode = { code, isInvalid: false };
     this.discountCodes.push(discountCode);
     return discountCode;
+  }
+
+  getDiscountCodes(): DiscountCode[] {
+    return this.discountCodes;
   }
 
   setNthOrder(n: number): void {
@@ -140,11 +149,6 @@ class Store {
 
   getNthOrder(): number {
     return this.nthOrder;
-  }
-
-  getLatestDiscountCode(): DiscountCode | null {
-    const unusedCodes = this.discountCodes.filter((dc) => !dc.used);
-    return unusedCodes.length > 0 ? unusedCodes[unusedCodes.length - 1] : null;
   }
 
   resetStats() {

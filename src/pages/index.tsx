@@ -3,11 +3,12 @@ import React, { useEffect, useState } from "react";
 import { AdminPanel } from "../components/AdminPanel";
 import { Cart } from "../components/Cart";
 import { ProductList } from "../components/ProductList";
-import { AdminStats, CartItem, Order, Product } from "../types";
+import { AdminStats, CartItem, DiscountCode, Order, Product } from "../types";
 
 const Home: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [discountCodes, setDiscountCodes] = useState<DiscountCode[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     itemsPurchased: 0,
     totalPurchaseAmount: 0,
@@ -21,6 +22,7 @@ const Home: React.FC = () => {
     fetchProducts();
     fetchCart();
     fetchAdminStats();
+    fetchDiscountCodes();
   }, []);
 
   const fetchProducts = async () => {
@@ -52,12 +54,15 @@ const Home: React.FC = () => {
   };
 
   const handleAddToCart = async (productId: number) => {
-    await fetch("/api/cart", {
+    const response = await fetch("/api/cart", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ productId, quantity: 1 }),
     });
-    fetchCart();
+    const data = await response.json();
+    if (response.ok) {
+      setCart(data.cart);
+    }
     toast({
       title: "Item added to cart",
       status: "success",
@@ -77,6 +82,7 @@ const Home: React.FC = () => {
       const order: Order = data;
       fetchCart();
       fetchAdminStats();
+      fetchDiscountCodes();
       toast({
         title: "Order placed successfully",
         description: `Total: ₹ ${order.total.toFixed(2)}`,
@@ -90,31 +96,6 @@ const Home: React.FC = () => {
         description: data.error,
         status: "error",
         duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
-
-  // Function to clear the cart
-  const handleClearCart = async () => {
-    const response = await fetch("/api/cart", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      // No body needed to clear the cart
-    });
-    if (response.ok) {
-      setCart([]);
-      toast({
-        title: "Cart cleared",
-        status: "success",
-        duration: 2000,
-        isClosable: true,
-      });
-    } else {
-      toast({
-        title: "Failed to clear cart",
-        status: "error",
-        duration: 2000,
         isClosable: true,
       });
     }
@@ -145,8 +126,24 @@ const Home: React.FC = () => {
     }
   };
 
+  const fetchDiscountCodes = async () => {
+    const response = await fetch("/api/discountCodes");
+    const data = await response.json();
+    if (response.ok) {
+      setDiscountCodes(data);
+    } else {
+      toast({
+        title: "Failed to remove item",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+    }
+    // Handle the discount codes as needed
+  };
+
   return (
-    <Container maxW="container.xl" py={8}>
+    <Container maxW="container.xl" py={"14"}>
       <Flex direction={{ base: "column", md: "row" }} gap={8} height={"100%"}>
         <Box flex={2} height={"max-content"}>
           <ProductList products={products} onAddToCart={handleAddToCart} />
@@ -157,17 +154,13 @@ const Home: React.FC = () => {
             justifyContent={"space-between"}
             height={"100%"}
             maxH={"100%"}
-            gap={4}
           >
             <Cart
               cart={cart}
               onCheckout={handleCheckout}
               availableDiscountCodes={
-                adminStats.discountCodes
-                  ? adminStats.discountCodes.filter((dc) => !dc.used)
-                  : []
+                discountCodes ? discountCodes.filter((dc) => !dc.isInvalid) : []
               }
-              onClearCart={handleClearCart}
               onDeleteItem={handleDeleteItem}
             />
             <AdminPanel adminStats={adminStats} onReset={resetStats} />

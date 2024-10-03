@@ -21,7 +21,7 @@ export interface Order {
 
 export interface DiscountCode {
   code: string;
-  used: boolean;
+  isInvalid: boolean;
 }
 
 export interface AdminStats {
