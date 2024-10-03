@@ -23,3 +23,11 @@ export interface DiscountCode {
   code: string;
   used: boolean;
 }
+
+export interface AdminStats {
+  itemsPurchased: number;
+  totalPurchaseAmount: number;
+  totalOrderCount: number;
+  discountCodes: DiscountCode[];
+  totalDiscountAmount: number;
+}

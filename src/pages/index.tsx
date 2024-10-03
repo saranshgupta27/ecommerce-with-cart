@@ -3,30 +3,24 @@ import React, { useEffect, useState } from "react";
 import { AdminPanel } from "../components/AdminPanel";
 import { Cart } from "../components/Cart";
 import { ProductList } from "../components/ProductList";
-import { CartItem, Order, Product } from "../types";
+import { AdminStats, CartItem, Order, Product } from "../types";
 
 const Home: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [nthOrder, setNthOrder] = useState(5);
-  const [adminStats, setAdminStats] = useState<{
-    itemsPurchased: number;
-    totalPurchaseAmount: number;
-    discountCodes: { code: string; used: boolean }[];
-    totalDiscountAmount: number;
-  }>({
+  const [adminStats, setAdminStats] = useState<AdminStats>({
     itemsPurchased: 0,
     totalPurchaseAmount: 0,
     discountCodes: [],
+    totalOrderCount: 0,
     totalDiscountAmount: 0,
   });
   const toast = useToast();
-  console.log(cart);
+
   useEffect(() => {
     fetchProducts();
     fetchCart();
     fetchAdminStats();
-    fetchNthOrder();
   }, []);
 
   const fetchProducts = async () => {
@@ -47,6 +41,16 @@ const Home: React.FC = () => {
     setAdminStats(data);
   };
 
+  const resetStats = async () => {
+    const response = await fetch("/api/admin/stats", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+    });
+    const data = await response.json();
+    setCart([]);
+    setAdminStats(data);
+  };
+
   const handleAddToCart = async (productId: number) => {
     await fetch("/api/cart", {
       method: "POST",
@@ -60,16 +64,6 @@ const Home: React.FC = () => {
       duration: 2000,
       isClosable: true,
     });
-  };
-
-  const resetStats = async () => {
-    setAdminStats({
-      itemsPurchased: 0,
-      totalPurchaseAmount: 0,
-      discountCodes: [],
-      totalDiscountAmount: 0,
-    });
-    setCart([]);
   };
 
   const handleCheckout = async (discountCode?: string) => {
@@ -101,35 +95,56 @@ const Home: React.FC = () => {
     }
   };
 
-  const fetchNthOrder = async () => {
-    const response = await fetch("/api/admin/nthOrder");
-    const data = await response.json();
-    setNthOrder(data.nthOrder);
-  };
-
-  const handleNthOrderChange = async (n: number) => {
-    const response = await fetch("/api/admin/nthOrder", {
-      method: "POST",
+  // Function to clear the cart
+  const handleClearCart = async () => {
+    const response = await fetch("/api/cart", {
+      method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nthOrder: n }),
+      // No body needed to clear the cart
     });
     if (response.ok) {
-      setNthOrder(n);
+      setCart([]);
       toast({
-        title: "Nth Order updated",
+        title: "Cart cleared",
         status: "success",
         duration: 2000,
         isClosable: true,
       });
     } else {
       toast({
-        title: "Failed to update Nth Order",
+        title: "Failed to clear cart",
         status: "error",
         duration: 2000,
         isClosable: true,
       });
     }
   };
+
+  // Function to delete an item from the cart
+  const handleDeleteItem = async (productId: number) => {
+    const response = await fetch("/api/cart", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId }),
+    });
+    if (response.ok) {
+      fetchCart(); // Refresh the cart after deletion
+      toast({
+        title: "Item removed from cart",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
+    } else {
+      toast({
+        title: "Failed to remove item",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+    }
+  };
+
   return (
     <Container maxW="container.xl" py={8}>
       <Flex direction={{ base: "column", md: "row" }} gap={8} height={"100%"}>
@@ -152,16 +167,10 @@ const Home: React.FC = () => {
                   ? adminStats.discountCodes.filter((dc) => !dc.used)
                   : []
               }
+              onClearCart={handleClearCart}
+              onDeleteItem={handleDeleteItem}
             />
-            <AdminPanel
-              itemsPurchased={adminStats.itemsPurchased}
-              totalPurchaseAmount={adminStats.totalPurchaseAmount}
-              discountCodes={adminStats.discountCodes}
-              totalDiscountAmount={adminStats.totalDiscountAmount}
-              resetStats={resetStats}
-              nthOrder={nthOrder}
-              onNthOrderChange={handleNthOrderChange}
-            />
+            <AdminPanel adminStats={adminStats} onReset={resetStats} />
           </Flex>
         </Box>
       </Flex>

@@ -1,3 +1,4 @@
+import { AdminStats } from "@/types";
 import {
   Box,
   Button,
@@ -5,32 +6,55 @@ import {
   Heading,
   Input,
   Text,
+  useToast,
   VStack,
 } from "@chakra-ui/react";
-import React, { useState } from "react";
-import { DiscountCode } from "../types";
+import React, { useEffect, useState } from "react";
 
 interface AdminPanelProps {
-  itemsPurchased: number;
-  totalPurchaseAmount: number;
-  discountCodes: DiscountCode[];
-  totalDiscountAmount: number;
-  nthOrder: number;
-  onNthOrderChange: (n: number) => void;
-  resetStats: () => void;
+  adminStats: AdminStats;
+  onReset: () => void;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
-  itemsPurchased,
-  totalPurchaseAmount,
-  discountCodes,
-  totalDiscountAmount,
-  nthOrder,
-  onNthOrderChange,
-  resetStats,
+  adminStats,
+  onReset,
 }) => {
-  const [newNthOrder, setNewNthOrder] = useState(nthOrder.toString());
   const [isExpanded, setIsExpanded] = useState(false);
+  const [nthOrder, setNthOrder] = useState(5);
+  const [newNthOrder, setNewNthOrder] = useState(nthOrder.toString());
+
+  const toast = useToast();
+
+  const fetchNthOrder = async () => {
+    const response = await fetch("/api/admin/nthOrder");
+    const data = await response.json();
+    setNthOrder(data.nthOrder);
+  };
+
+  const onNthOrderChange = async (n: number) => {
+    const response = await fetch("/api/admin/nthOrder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nthOrder: n }),
+    });
+    if (response.ok) {
+      setNthOrder(n);
+      toast({
+        title: "Nth Order updated",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
+    } else {
+      toast({
+        title: "Failed to update Nth Order",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+    }
+  };
 
   const handleNthOrderChange = () => {
     const n = parseInt(newNthOrder, 10);
@@ -38,6 +62,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       onNthOrderChange(n);
     }
   };
+
+  useEffect(() => {
+    fetchNthOrder();
+  }, []);
 
   return (
     <Box
@@ -55,17 +83,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       </Heading>
       {isExpanded && (
         <VStack align="start" spacing={2}>
-          <Text mt={4}>Items Purchased: {itemsPurchased}</Text>
+          <Text mt={4}>Items Purchased: {adminStats.itemsPurchased}</Text>
           <Text>
-            Total Purchase Amount: INR {totalPurchaseAmount.toFixed(2)}
+            Total Purchase Amount: INR{" "}
+            {adminStats.totalPurchaseAmount.toFixed(2)}
           </Text>
           <Text>
-            Total Discount Amount: INR {totalDiscountAmount.toFixed(2)}
+            Total Discount Amount: INR{" "}
+            {adminStats.totalDiscountAmount.toFixed(2)}
           </Text>
+          <Text>Total Orders: {adminStats.totalOrderCount}</Text>
           <Text>Current Nth Order: {nthOrder}</Text>
           <Text>Discount Code Status:</Text>
           <VStack align="start" pl={4}>
-            {discountCodes?.map((code) => (
+            {adminStats.discountCodes?.map((code) => (
               <Text key={code.code}>
                 {code.code} - {code.used ? "Used" : "Available"}
               </Text>
@@ -91,11 +122,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </Button>
           </Flex>
           <Flex gap={"4"}>
-            <Button
-              onClick={resetStats}
-              background={"blue.600"}
-              color={"white"}
-            >
+            <Button onClick={onReset} background={"blue.600"} color={"white"}>
               Reset Stats
             </Button>
             <Button
