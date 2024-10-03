@@ -1,68 +1,20 @@
 import { Box, Container, Flex, useToast } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { AdminPanel } from "../components/AdminPanel";
 import { Cart } from "../components/Cart";
 import { ProductList } from "../components/ProductList";
-import { AdminStats, CartItem, DiscountCode, Order, Product } from "../types";
+import { useAdminStats } from "../hooks/useAdminStats";
+import { useCart } from "../hooks/useCart";
+import { useProducts } from "../hooks/useProducts";
 
 const Home: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [discountCodes, setDiscountCodes] = useState<DiscountCode[]>([]);
-  const [adminStats, setAdminStats] = useState<AdminStats>({
-    itemsPurchased: 0,
-    totalPurchaseAmount: 0,
-    discountCodes: [],
-    totalOrderCount: 0,
-    totalDiscountAmount: 0,
-  });
+  const products = useProducts();
+  const { cart, addToCart, deleteItem, resetCart } = useCart();
+  const { adminStats, resetStats, refreshAdminStats } = useAdminStats();
   const toast = useToast();
 
-  useEffect(() => {
-    fetchProducts();
-    fetchCart();
-    fetchAdminStats();
-    fetchDiscountCodes();
-  }, []);
-
-  const fetchProducts = async () => {
-    const response = await fetch("/api/products");
-    const data = await response.json();
-    setProducts(data);
-  };
-
-  const fetchCart = async () => {
-    const response = await fetch("/api/cart");
-    const data = await response.json();
-    setCart(data);
-  };
-
-  const fetchAdminStats = async () => {
-    const response = await fetch("/api/admin/stats");
-    const data = await response.json();
-    setAdminStats(data);
-  };
-
-  const resetStats = async () => {
-    const response = await fetch("/api/admin/stats", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-    });
-    const data = await response.json();
-    setCart([]);
-    setAdminStats(data);
-  };
-
   const handleAddToCart = async (productId: number) => {
-    const response = await fetch("/api/cart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productId, quantity: 1 }),
-    });
-    const data = await response.json();
-    if (response.ok) {
-      setCart(data.cart);
-    }
+    await addToCart(productId);
     toast({
       title: "Item added to cart",
       status: "success",
@@ -79,17 +31,15 @@ const Home: React.FC = () => {
     });
     const data = await response.json();
     if (response.ok) {
-      const order: Order = data;
-      fetchCart();
-      fetchAdminStats();
-      fetchDiscountCodes();
       toast({
         title: "Order placed successfully",
-        description: `Total: ₹ ${order.total.toFixed(2)}`,
+        description: `Total: ₹ ${data.total.toFixed(2)}`,
         status: "success",
         duration: 3000,
         isClosable: true,
       });
+      resetCart();
+      refreshAdminStats();
     } else {
       toast({
         title: "Checkout failed",
@@ -99,47 +49,6 @@ const Home: React.FC = () => {
         isClosable: true,
       });
     }
-  };
-
-  // Function to delete an item from the cart
-  const handleDeleteItem = async (productId: number) => {
-    const response = await fetch("/api/cart", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productId }),
-    });
-    if (response.ok) {
-      fetchCart(); // Refresh the cart after deletion
-      toast({
-        title: "Item removed from cart",
-        status: "success",
-        duration: 2000,
-        isClosable: true,
-      });
-    } else {
-      toast({
-        title: "Failed to remove item",
-        status: "error",
-        duration: 2000,
-        isClosable: true,
-      });
-    }
-  };
-
-  const fetchDiscountCodes = async () => {
-    const response = await fetch("/api/discountCodes");
-    const data = await response.json();
-    if (response.ok) {
-      setDiscountCodes(data);
-    } else {
-      toast({
-        title: "Failed to remove item",
-        status: "error",
-        duration: 2000,
-        isClosable: true,
-      });
-    }
-    // Handle the discount codes as needed
   };
 
   return (
@@ -158,10 +67,10 @@ const Home: React.FC = () => {
             <Cart
               cart={cart}
               onCheckout={handleCheckout}
-              availableDiscountCodes={
-                discountCodes ? discountCodes.filter((dc) => !dc.isInvalid) : []
-              }
-              onDeleteItem={handleDeleteItem}
+              availableDiscountCodes={adminStats.discountCodes.filter(
+                (dc) => !dc.isInvalid
+              )}
+              onDeleteItem={deleteItem}
             />
             <AdminPanel adminStats={adminStats} onReset={resetStats} />
           </Flex>
