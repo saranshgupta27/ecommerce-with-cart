@@ -38,8 +38,9 @@ class Store {
         "https://static.vecteezy.com/system/resources/previews/007/634/001/non_2x/chocolate-bar-clipart-design-vektor-free-vector.jpg",
     },
   ];
+
   private cart: CartItem[] = [];
-  private orders: Order[] = [];
+  private currentOrder: Order[] = [];
   private discountCodes: DiscountCode[] = [];
   private orderCount: number = 0;
   private nthOrder: number = 5; // Default to every 5th order
@@ -63,6 +64,10 @@ class Store {
     }
   }
 
+  removeFromCart(productId: number): void {
+    this.cart = this.cart.filter((item) => item.product.id !== productId);
+  }
+
   getCart(): CartItem[] {
     return this.cart;
   }
@@ -73,6 +78,7 @@ class Store {
 
   checkout(discountCode?: string): Order | { error: string } {
     discountCode = discountCode?.trim();
+
     if (this.cart.length === 0) {
       return { error: "Cannot checkout with an empty cart" };
     }
@@ -89,7 +95,7 @@ class Store {
       );
       if (validDiscount) {
         discount = subtotal * (this.discountPercentage / 100);
-        validDiscount.used = true;
+        validDiscount.used = true; // Mark the discount as used
       } else {
         return { error: "Invalid or already used discount code" };
       }
@@ -107,7 +113,7 @@ class Store {
       discountCode: discountCode,
     };
 
-    this.orders.push(order);
+    this.currentOrder.push(order);
     this.clearCart();
 
     if (this.orderCount % this.nthOrder === 0) {
@@ -141,22 +147,32 @@ class Store {
     return unusedCodes.length > 0 ? unusedCodes[unusedCodes.length - 1] : null;
   }
 
+  resetStats() {
+    this.cart = [];
+    this.currentOrder = [];
+    this.discountCodes = [];
+    this.orderCount = 0;
+    return this.getAdminStats();
+  }
+
   getAdminStats() {
-    const itemsPurchased = this.orders.reduce(
+    const itemsPurchased = this.currentOrder.reduce(
       (total, order) =>
         total + order.items.reduce((sum, item) => sum + item.quantity, 0),
       0
     );
-    const totalPurchaseAmount = this.orders.reduce(
+    const totalPurchaseAmount = this.currentOrder.reduce(
       (total, order) => total + order.total,
       0
     );
-    const totalDiscountAmount = this.orders.reduce(
+    const totalDiscountAmount = this.currentOrder.reduce(
       (total, order) => total + order.discount,
       0
     );
+    const totalOrderCount = this.orderCount;
 
     return {
+      totalOrderCount,
       itemsPurchased,
       totalPurchaseAmount,
       discountCodes: this.discountCodes,
