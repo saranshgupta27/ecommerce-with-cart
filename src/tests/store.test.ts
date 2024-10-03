@@ -1,4 +1,3 @@
-// src/__tests__/store.test.ts
 import { store } from "../utils/store";
 
 describe("Store", () => {

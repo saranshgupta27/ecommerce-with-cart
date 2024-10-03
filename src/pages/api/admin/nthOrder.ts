@@ -1,4 +1,3 @@
-// src/pages/api/admin/nthOrder.ts
 import { NextApiRequest, NextApiResponse } from "next";
 import { store } from "../../../utils/store";
 

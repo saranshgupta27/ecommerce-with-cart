@@ -30,7 +30,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   resetStats,
 }) => {
   const [newNthOrder, setNewNthOrder] = useState(nthOrder.toString());
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleNthOrderChange = () => {
     const n = parseInt(newNthOrder, 10);
@@ -42,20 +42,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   return (
     <Box
       position={"absolute"}
-      left={0}
-      top={0}
+      left={5}
+      top={5}
       cursor={isExpanded ? "initial" : "pointer"}
       color={isExpanded ? "black" : "white"}
       background={isExpanded ? "beige" : "blue.800"}
       p={isExpanded ? 6 : 2}
       onClick={isExpanded ? undefined : () => setIsExpanded(true)}
     >
-      <Heading as="h2" size="lg" mb={4}>
+      <Heading as="h2" size="lg">
         Admin Controls
       </Heading>
       {isExpanded && (
         <VStack align="start" spacing={2}>
-          <Text>Items Purchased: {itemsPurchased}</Text>
+          <Text mt={4}>Items Purchased: {itemsPurchased}</Text>
           <Text>
             Total Purchase Amount: INR {totalPurchaseAmount.toFixed(2)}
           </Text>

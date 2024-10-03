@@ -1,4 +1,3 @@
-// src/utils/store.ts
 import { CartItem, DiscountCode, Order, Product } from "../types";
 
 class Store {

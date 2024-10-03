@@ -1,6 +1,9 @@
 # Ecommerce Store
 This is a simple ecommerce store built with Next.js, Chakra UI, and TypeScript. It demonstrates basic functionality such as adding items to a cart, applying discount codes, and checking out.
 
+# NOTE
+Admin Controls for now has been placed on home for easier debugging and testing in a floating dialog box. This is only temporary and should be moved on a separate page/route.
+
 ## Features
 
 - Product listing
