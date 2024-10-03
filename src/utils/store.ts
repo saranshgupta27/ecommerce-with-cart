@@ -57,9 +57,11 @@ class Store {
     const existingItem = this.cart.find(
       (item) => item.product.id === productId
     );
-    existingItem
-      ? this.updateCartItemQuantity(existingItem, quantity)
-      : this.addNewCartItem(product, quantity);
+    if (existingItem) {
+      this.updateCartItemQuantity(existingItem, quantity);
+    } else {
+      this.addNewCartItem(product, quantity);
+    }
   }
 
   private updateCartItemQuantity(
