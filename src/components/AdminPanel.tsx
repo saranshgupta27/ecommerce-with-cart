@@ -99,7 +99,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           <VStack align="start" pl={4}>
             {adminStats.discountCodes?.map((code) => (
               <Text key={code.code}>
-                {code.code} - {code.isInvalid ? "InValid/Used" : "Available"}
+                {code.code} - {code.isInvalid ? "Expired/Used" : "Available"}
               </Text>
             ))}
           </VStack>

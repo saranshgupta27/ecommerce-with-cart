@@ -52,16 +52,25 @@ class Store {
 
   addToCart(productId: number, quantity: number): void {
     const product = this.products.find((p) => p.id === productId);
-    if (product) {
-      const existingItem = this.cart.find(
-        (item) => item.product.id === productId
-      );
-      if (existingItem) {
-        existingItem.quantity += quantity;
-      } else {
-        this.cart.push({ product, quantity });
-      }
-    }
+    if (!product) return;
+
+    const existingItem = this.cart.find(
+      (item) => item.product.id === productId
+    );
+    existingItem
+      ? this.updateCartItemQuantity(existingItem, quantity)
+      : this.addNewCartItem(product, quantity);
+  }
+
+  private updateCartItemQuantity(
+    existingItem: CartItem,
+    quantity: number
+  ): void {
+    existingItem.quantity += quantity;
+  }
+
+  private addNewCartItem(product: Product, quantity: number): void {
+    this.cart.push({ product, quantity });
   }
 
   removeFromCart(productId: number): void {
@@ -78,7 +87,6 @@ class Store {
 
   checkout(discountCode?: string): Order | { error: string } {
     discountCode = discountCode?.trim();
-    console.log(this.cart.length);
     if (this.cart.length === 0) {
       return { error: "Cannot checkout with an empty cart" };
     }
